@@ -2,6 +2,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/web,python,flask,jspm,vuejs
 # Edit at https://www.toptal.com/developers/gitignore?templates=web,python,flask,jspm,vuejs
 
+### vscode
+.vscode
+
 ### Flask ###
 instance/*
 !instance/.gitignore
