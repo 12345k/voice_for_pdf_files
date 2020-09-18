@@ -1,11 +1,14 @@
 from typing import List
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Form,  UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import aiofiles
 import random
 import os
 import pdf_to_text
+from tempfile import NamedTemporaryFile
+import shutil
+from pathlib import Path
 
 app = FastAPI()
 
@@ -27,35 +30,31 @@ app.add_middleware(
 )
 
 
-STORAGE_PATH = 'pdf_files'
 
 
+def save_upload_file_tmp(upload_file: UploadFile) -> Path:
+    try:
+        suffix = Path(upload_file.filename).suffix
+        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            shutil.copyfileobj(upload_file.file, tmp)
+            tmp_path = Path(tmp.name)
+    finally:
+        upload_file.file.close()
+    return tmp_path
 
-@app.post("/files/")
-async def create_files(files: List[bytes] = File(...)):
-    return {"file_sizes": [len(file) for file in files]}
+@app.post("/uploadfile")
+def create_file(
+    file: UploadFile = File(...)
+):
 
-
-@app.post("/uploadfiles")
-# @app.get("/uploadfiles/")
-async def create_upload_files(files: List[UploadFile] = File(...)):
-   
-    # for file in files:
-    #     fpath = os.path.join(
-    #         STORAGE_PATH, f'{file.filename}'
-    #     )
-    #     async with aiofiles.open(fpath, 'wb') as f:
-    #         content = await file.read()
-    #         await f.write(content)
-
-    #     pages=pdf_to_text.covert_to_text(os.path.join(
-    #         STORAGE_PATH, f'{file.filename}'
-    #     ))
+    tmp_path = save_upload_file_tmp(file)
+    try:
+        pages=pdf_to_text.covert_to_text(tmp_path)
+        print(tmp_path)  # Do something with the saved temp file
+    finally:
+        tmp_path.unlink()  # Delete the temp file
+    return {"message":pages}
     
-    pages="test"
-    
-    return {"message": pages}
-
 @app.get("/")
 async def main():
     content = """

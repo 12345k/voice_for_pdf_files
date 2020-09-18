@@ -17,3 +17,5 @@ def covert_to_text(FILE_PATH):
             
             print("*"*100)
     return result
+
+# covert_to_text("/home/karthickaravindan/pdf_audio_reader/backend/pdf_files/tmps5hcz01j.pdf")
