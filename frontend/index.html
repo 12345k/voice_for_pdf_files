@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+
+    <div id="file-upload-list" class="container">
+        
+        <br>
+        <div class="large-12 medium-12 small-12 cell">
+          <label>File
+            <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>
+          </label>
+            <button v-on:click="submitFile()">Submit</button>
+            <br>
+            {{message}}
+            
+            <br>
+
+            
+            <div v-if=post.message>
+                <textarea name=""  ref="raw_text" cols="100" rows="30">{{post.message}}</textarea>
+                <br>
+                <button @click="audioText('play')" >play</button>
+                
+                <button @click="audioText('stop')">stop</button>
+                <br>
+                <button @click="audioText('pause_or_resume')">{{isToggle}}</button>
+            </div>
+        </div>
+    </div>
+    
+    
+
+    <script>
+        var fileList = new Vue({
+
+            el: "#file-upload-list",
+            data(){
+                return {
+                    file: '',
+                    post:[],
+                    message:'',
+                    isExist:false,
+                    isToggle:"pause"
+
+                }
+            },
+            
+            methods: {
+                
+          
+            submitFile(){
+               
+                let formData = new FormData();
+                var self = this;
+                formData.append('file', self.file);
+                console.log(self.file);
+                console.log(formData);
+                var baseURL="http://127.0.0.1:8000"
+                
+                self.message="got it";
+                axios.post( baseURL+'/uploadfile',
+                        formData)
+                        .then(function(response){
+                        
+                        
+                                self.post = response.data;
+                                console.log(self.post);
+                                self.message="converted pdf to text";
+                    })
+                    .catch(function(err){
+                    console.error(err);
+                    console.log('FAILURE!!');
+                    self.post='';
+                    self.message="Failed in convertion pdf to text";
+                    });               
+            },
+
+            
+            handleFileUpload(){
+                this.file = this.$refs.file.files[0];
+            },
+
+            audioText(status){
+                text= this.$refs.raw_text.value;
+                
+
+                var msg = new SpeechSynthesisUtterance();
+                var synth= window.speechSynthesis;
+                var voices = synth.getVoices();
+                // console.log(voices);
+                msg.voice = voices[3]; 
+
+                if(text.length >=1 && status == "play"){
+                    msg.text = text;
+            
+                    
+                    console.log("play")
+                    synth.speak(msg);
+
+                }
+                else if (status =='stop'){
+                    
+                    console.log("stop")
+                    synth.cancel();
+                    
+                }
+                
+                else if(status=="pause_or_resume"){
+                    this.isExist = !this.isExist
+                    if(this.isExist){
+                        this.isToggle="resume"
+                        var s=synth.pause();
+                        console.log(s);
+                        var amIPaused = synth.paused;
+                        console.log(amIPaused);
+                    }
+                    else{
+                        this.isToggle="pause"
+
+                    }
+                    // console.log(this.isExist);
+                }
+
+            }
+            }
+
+        
+            
+        });
+    </script>
+
+</body>
+</html>
