@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import aiofiles
 import random
 import os
-import pdf_to_text
+import backend.pdf_to_text as pdf_to_text
 from tempfile import NamedTemporaryFile
 import shutil
 from pathlib import Path
